@@ -4560,7 +4560,9 @@ class SQLConf extends Serializable with Logging {
   /** Return the value of Spark SQL configuration property for the given key. */
   @throws[NoSuchElementException]("if key is not set")
   def getConfString(key: String): String = {
-    Option(settings.get(key)).
+    reader.get(key).orElse {
+      Option(settings.get(key))
+    }.
       orElse {
         // Try to use the default value
         Option(getConfigEntry(key)).map { e => e.stringConverter(e.readFrom(reader)) }
@@ -4637,13 +4639,25 @@ class SQLConf extends Serializable with Logging {
       }
     }
   }
+  def setLocalProperty(key: String, value: String): Unit = {
+    if (value == null) {
+      reader.localProperties.get().remove(key)
+    } else {
+      reader.localProperties.get().put(key, value)
+    }
+  }
 
   /**
    * Return all the configuration properties that have been set (i.e. not the default).
    * This creates a new copy of the config properties in the form of a Map.
    */
-  def getAllConfs: immutable.Map[String, String] =
-    settings.synchronized { settings.asScala.toMap }
+  def getAllConfs: immutable.Map[String, String] = {
+    settings.synchronized {
+      var map = settings.asScala.toMap
+      reader.localProperties.get().asScala.foreach(entry => map += (entry._1 -> entry._2))
+      map
+    }
+  }
 
   /**
    * Return all the configuration definitions that have been defined in [[SQLConf]]. Each
@@ -4720,6 +4734,10 @@ class SQLConf extends Serializable with Logging {
 
   def clear(): Unit = {
     settings.clear()
+  }
+
+  def clearLocalConf(): Unit = {
+    reader.localProperties.get().clear()
   }
 
   override def clone(): SQLConf = {
