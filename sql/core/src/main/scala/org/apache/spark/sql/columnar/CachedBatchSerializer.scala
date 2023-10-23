@@ -157,8 +157,6 @@ trait CachedBatchSerializer extends Serializable {
       cacheAttributes: Seq[Attribute],
       selectedAttributes: Seq[Attribute],
       conf: SQLConf): RDD[InternalRow]
-
-  def clearCache(input: RDD[CachedBatch]): Unit = {}
 }
 
 /**

@@ -230,7 +230,6 @@ case class CachedRDDBuilder(
     if (_cachedColumnBuffers != null) {
       synchronized {
         if (_cachedColumnBuffers != null) {
-          serializer.clearCache(_cachedColumnBuffers)
           _cachedColumnBuffers.unpersist(blocking)
           _cachedColumnBuffers = null
         }
