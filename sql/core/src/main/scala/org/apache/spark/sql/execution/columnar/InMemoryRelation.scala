@@ -386,7 +386,7 @@ case class InMemoryRelation(
       cacheBuilder,
       outputOrdering)
 
-  @transient val partitionStatistics = new PartitionStatistics(output)
+  @transient lazy val partitionStatistics = new PartitionStatistics(output)
 
   def cachedPlan: SparkPlan = cacheBuilder.cachedPlan
 
